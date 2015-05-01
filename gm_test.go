@@ -27,6 +27,23 @@ func TestImageInfo(t *testing.T) {
 	q := uint(34)
 	iminfo.SetQuality(q)
 	if actual := iminfo.Quality(); actual != 34 {
-		t.Fatalf("SetQuality failed: actual = %v, expected = %v", actual, q)
+		t.Fatalf("SetQuality set %v instead of %v", actual, q)
+	}
+}
+
+func TestPixelPacket(t *testing.T) {
+	name := "blue"
+	color, err := QueryColorDatabase(name)
+	if err != nil {
+		t.Fatalf("QueryColorDatabase couldn't find %s: %v", name, err)
+	}
+	if actual, expected := color.Hex(), "0000ff00"; actual != expected {
+		t.Fatalf("returned color is %s instead of %s", actual, expected)
+	}
+
+	name = "!!missing!!"
+	color, err = QueryColorDatabase(name)
+	if err == nil {
+		t.Fatalf("QueryColorDatabase found missing color %s", name)
 	}
 }

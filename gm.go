@@ -2,10 +2,20 @@ package graphicsmagick
 
 /*
 #cgo pkg-config: GraphicsMagick
+#cgo LDFLAGS: -DQuantumDepth=8
 #include <magick/api.h>
 */
 import "C"
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"unsafe"
+)
+
+const (
+	gmTrue  = 1
+	gmFalse = 0
+)
 
 func init() {
 	C.InitializeMagick(nil)
@@ -102,6 +112,44 @@ type Image struct {
 
 func (im *Image) Destroy() {
 	C.DestroyImage(im.c)
+}
+
+type PixelPacket struct {
+	c C.PixelPacket
+}
+
+func QueryColorDatabase(name string) (*PixelPacket, error) {
+	cpxpacket := C.PixelPacket{}
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	exc := newExceptionInfo()
+	defer exc.Destroy()
+	res := C.QueryColorDatabase(cname, &cpxpacket, exc.c)
+	if res != gmTrue {
+		return nil, exc.MustError("in QueryColorDatabase()")
+	}
+	return &PixelPacket{cpxpacket}, nil
+}
+
+func (pp *PixelPacket) Red() uint8 {
+	return uint8(pp.c.red)
+}
+
+func (pp *PixelPacket) Green() uint8 {
+	return uint8(pp.c.green)
+}
+
+func (pp *PixelPacket) Blue() uint8 {
+	return uint8(pp.c.blue)
+}
+
+func (pp *PixelPacket) Opacity() uint8 {
+	return uint8(pp.c.opacity)
+}
+
+func (pp *PixelPacket) Hex() string {
+	return fmt.Sprintf("%02x%02x%02x%02x",
+		pp.Red(), pp.Green(), pp.Blue(), pp.Opacity())
 }
 
 func gmGoString(str [C.MaxTextExtent]C.char) string {
