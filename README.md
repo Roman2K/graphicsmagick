@@ -7,3 +7,8 @@ Matching the C API closely while making it object-oriented where relevant.
 * Very first draft
 * Will add only the very few methods I use, for now
 * The code base must stay extensible with future full coverage in mind
+
+## Documentation
+
+* [API](http://godoc.org/github.com/Roman2K/graphicsmagick)
+* See _test.go files
