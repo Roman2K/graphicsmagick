@@ -9,8 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TODO use testify where relevant
-
 func TestReadImage(t *testing.T) {
 	// normal
 	im, err := ReadImage("fixtures/image.jpg")
@@ -96,6 +94,7 @@ func TestPixelPacket(t *testing.T) {
 func TestImage(t *testing.T) {
 	// filename
 	im := AllocateImage()
+	defer im.Destroy()
 	require.Equal(t, "", im.Filename())
 	im.SetFilename("abc")
 	require.Equal(t, "abc", im.Filename())
