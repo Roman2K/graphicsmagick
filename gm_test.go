@@ -52,12 +52,14 @@ func TestImageInfo(t *testing.T) {
 	iminfo := NewImageInfo()
 	defer iminfo.Destroy()
 
+	// quality
 	q := uint(34)
 	iminfo.SetQuality(q)
 	if actual := iminfo.Quality(); actual != 34 {
 		t.Fatalf("SetQuality set %v instead of %v", actual, q)
 	}
 
+	// background color
 	color, err := QueryColorDatabase("red")
 	if err != nil {
 		t.Fatalf("QueryColorDatabase() failed: %v", err)
@@ -65,6 +67,13 @@ func TestImageInfo(t *testing.T) {
 	iminfo.SetBackgroundColor(color)
 	if actual, expected := iminfo.BackgroundColor().Hex(), color.Hex(); actual != expected {
 		t.Fatalf("SetBackground set %v instead of %v", actual, expected)
+	}
+
+	// filename
+	filename := "xxx"
+	iminfo.SetFilename(filename)
+	if actual := iminfo.Filename(); actual != filename {
+		t.Fatalf("SetFilename set %v instead of %v", actual, filename)
 	}
 }
 
