@@ -58,6 +58,14 @@ func (inf *ImageInfo) Quality() uint {
 	return uint(inf.c.quality)
 }
 
+func (inf *ImageInfo) SetBackgroundColor(color *PixelPacket) {
+	inf.c.background_color = color.c
+}
+
+func (inf *ImageInfo) BackgroundColor() *PixelPacket {
+	return &PixelPacket{inf.c.background_color}
+}
+
 func (inf *ImageInfo) ReadImage() (*Image, error) {
 	exc := newExceptionInfo()
 	defer exc.Destroy()
