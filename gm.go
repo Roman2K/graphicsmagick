@@ -32,12 +32,20 @@ func (inf *ImageInfo) Destroy() {
 	defer C.DestroyImageInfo(inf.c)
 }
 
+func (inf *ImageInfo) SetFilename(filename string) {
+	gmStrcpy(&inf.c.filename, filename)
+}
+
 func (inf *ImageInfo) Filename() string {
 	return gmGoString(inf.c.filename)
 }
 
-func (inf *ImageInfo) SetFilename(filename string) {
-	gmStrcpy(&inf.c.filename, filename)
+func (inf *ImageInfo) SetQuality(quality uint) {
+	inf.c.quality = C.ulong(quality)
+}
+
+func (inf *ImageInfo) Quality() uint {
+	return uint(inf.c.quality)
 }
 
 func (inf *ImageInfo) ReadImage() (*Image, error) {

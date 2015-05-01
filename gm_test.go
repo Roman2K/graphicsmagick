@@ -20,3 +20,13 @@ func TestReadImage(t *testing.T) {
 	}
 	defer im.Destroy()
 }
+
+func TestImageInfo(t *testing.T) {
+	iminfo := NewImageInfo()
+	defer iminfo.Destroy()
+	q := uint(34)
+	iminfo.SetQuality(q)
+	if actual := iminfo.Quality(); actual != 34 {
+		t.Fatalf("SetQuality failed: actual = %v, expected = %v", actual, q)
+	}
+}
