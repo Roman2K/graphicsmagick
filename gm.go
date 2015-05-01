@@ -12,6 +12,7 @@ import (
 	"unsafe"
 )
 
+// Defined in magic/studio.h, not exported in api.h
 const (
 	gmTrue  = 1
 	gmFalse = 0
@@ -122,6 +123,29 @@ func (im *Image) Destroy() {
 	C.DestroyImage(im.c)
 }
 
+func (im *Image) Resize(w, h uint, filter string, blur float32) (*Image, error) {
+	cfilter, ok := filters[filter]
+	if !ok {
+		return nil, fmt.Errorf("unknown filter: %s", filter)
+	}
+	exc := newExceptionInfo()
+	defer exc.Destroy()
+	cim := C.ResizeImage(im.c, C.ulong(w), C.ulong(h), cfilter, C.double(blur),
+		exc.c)
+	if cim == nil {
+		return nil, exc.MustError("in ResizeImage()")
+	}
+	return &Image{cim}, nil
+}
+
+func (im *Image) Rows() uint {
+	return uint(im.c.rows)
+}
+
+func (im *Image) Columns() uint {
+	return uint(im.c.columns)
+}
+
 type PixelPacket struct {
 	c C.PixelPacket
 }
@@ -183,4 +207,25 @@ func gmStrcpy(dst *[C.MaxTextExtent]C.char, src string) {
 		dst[i] = C.char(c)
 	}
 	dst[len(src)] = 0
+}
+
+// enum_strings.h isn't exported in api.h so we can't use StringToFilterTypes()
+// and have to copy the list
+var filters = map[string]C.FilterTypes{
+	"":          C.UndefinedFilter,
+	"Point":     C.PointFilter,
+	"Box":       C.BoxFilter,
+	"Triangle":  C.TriangleFilter,
+	"Hermite":   C.HermiteFilter,
+	"Hanning":   C.HanningFilter,
+	"Hamming":   C.HammingFilter,
+	"Blackman":  C.BlackmanFilter,
+	"Gaussian":  C.GaussianFilter,
+	"Quadratic": C.QuadraticFilter,
+	"Cubic":     C.CubicFilter,
+	"Catrom":    C.CatromFilter,
+	"Mitchell":  C.MitchellFilter,
+	"Lanczos":   C.LanczosFilter,
+	"Bessel":    C.BesselFilter,
+	"Sinc":      C.SincFilter,
 }

@@ -1,24 +1,51 @@
 package graphicsmagick
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestReadImage(t *testing.T) {
+	// normal
 	im, err := ReadImage("fixtures/image.jpg")
 	if im == nil {
 		t.Fatalf("couldn't open existing file - err: %v", err)
 	}
 	defer im.Destroy()
 
+	// missing
 	im, err = ReadImage("fixtures/!!missing!!")
 	if im != nil {
 		t.Fatalf("im present for missing file")
 	}
 
+	// PDF
 	im, err = ReadImage("fixtures/doc.pdf[0]")
 	if im == nil {
 		t.Fatalf("couldn't open pdf[0] - err: %v", err)
 	}
 	defer im.Destroy()
+
+	// resize
+	im, err = ReadImage("fixtures/image.jpg")
+	if err != nil {
+		t.Fatalf("in ReadImage(): %v", err)
+	}
+	defer im.Destroy()
+	res, err := im.Resize(10, 10, "", 1)
+	if err != nil {
+		t.Fatalf("Resize() failed: %v", err)
+	}
+	defer res.Destroy()
+	if x, y := res.Columns(), res.Rows(); x != 10 || y != 10 {
+		t.Fatalf("incorrect resize: %dx%d instead of 10x10", x, y)
+	}
+
+	// resize: unknown filter
+	_, err = im.Resize(10, 10, "!!unknown!!", 1)
+	if err == nil || !strings.Contains(err.Error(), "unknown filter") {
+		t.Fatalf("didn't return an error for unknown filter")
+	}
 }
 
 func TestImageInfo(t *testing.T) {
@@ -51,7 +78,7 @@ func TestPixelPacket(t *testing.T) {
 		t.Fatalf("returned color is %s instead of %s", actual, expected)
 	}
 
-	name = "!!missing!!"
+	name = "!!unknown!!"
 	color, err = QueryColorDatabase(name)
 	if err == nil {
 		t.Fatalf("QueryColorDatabase found missing color %s", name)
