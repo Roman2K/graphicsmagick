@@ -14,38 +14,27 @@ import (
 func TestReadImage(t *testing.T) {
 	// normal
 	im, err := ReadImage("fixtures/image.jpg")
-	if im == nil {
-		t.Fatalf("couldn't open existing file - err: %v", err)
-	}
+	require.Nil(t, err)
 	defer im.Destroy()
 
 	// missing
 	im, err = ReadImage("fixtures/!!missing!!")
-	if im != nil {
-		t.Fatalf("im present for missing file")
-	}
+	require.Nil(t, im)
 
 	// PDF
 	im, err = ReadImage("fixtures/doc.pdf[0]")
-	if im == nil {
-		t.Fatalf("couldn't open pdf[0] - err: %v", err)
-	}
+	require.Nil(t, err)
 	defer im.Destroy()
 
 	// resize
 	im, err = ReadImage("fixtures/image.jpg")
-	if err != nil {
-		t.Fatalf("in ReadImage(): %v", err)
-	}
+	require.Nil(t, err)
 	defer im.Destroy()
 	res, err := im.Resize(10, 10, "", 1)
-	if err != nil {
-		t.Fatalf("Resize() failed: %v", err)
-	}
+	require.Nil(t, err)
 	defer res.Destroy()
-	if x, y := res.Columns(), res.Rows(); x != 10 || y != 10 {
-		t.Fatalf("incorrect resize: %dx%d instead of 10x10", x, y)
-	}
+	require.Equal(t, uint(10), res.Columns())
+	require.Equal(t, uint(10), res.Rows())
 
 	// resize: unknown filter
 	_, err = im.Resize(10, 10, "!!unknown!!", 1)
@@ -61,65 +50,47 @@ func TestImageInfo(t *testing.T) {
 	// quality
 	q := uint(34)
 	iminfo.SetQuality(q)
-	if actual := iminfo.Quality(); actual != 34 {
-		t.Fatalf("SetQuality set %v instead of %v", actual, q)
-	}
+	require.Equal(t, q, iminfo.Quality())
 
 	// background color
 	color, err := QueryColorDatabase("red")
-	if err != nil {
-		t.Fatalf("QueryColorDatabase() failed: %v", err)
-	}
+	require.Nil(t, err)
 	iminfo.SetBackgroundColor(color)
-	if actual, expected := iminfo.BackgroundColor().Hex(), color.Hex(); actual != expected {
-		t.Fatalf("SetBackground set %v instead of %v", actual, expected)
-	}
+	require.Equal(t, color.Hex(), iminfo.BackgroundColor().Hex())
 
 	// filename
 	filename := "xxx"
 	iminfo.SetFilename(filename)
-	if actual := iminfo.Filename(); actual != filename {
-		t.Fatalf("SetFilename set %v instead of %v", actual, filename)
-	}
+	require.Equal(t, filename, iminfo.Filename())
 
 	// WriteImage
 	f, err := ioutil.TempFile("", "WriteImage-test")
-	if err != nil {
-		t.Fatalf("TempFile error: %v", err)
-	}
+	require.Nil(t, err)
 	defer func() {
 		os.Remove(f.Name())
 	}()
 	f.Close()
 	im, err := ReadImage("fixtures/image.jpg")
-	if err != nil {
-		t.Fatalf("ReadImage() error: %v", err)
-	}
+	require.Nil(t, err)
 	defer im.Destroy()
 	iminfo = NewImageInfo()
 	defer iminfo.Destroy()
 	im.SetFilename(f.Name())
 	err = iminfo.WriteImage(im)
-	if err != nil {
-		t.Fatalf("WriteImage() error: %v", err)
-	}
+	require.Nil(t, err)
 }
 
 func TestPixelPacket(t *testing.T) {
+	// QueryColorDatabase
 	name := "blue"
 	color, err := QueryColorDatabase(name)
-	if err != nil {
-		t.Fatalf("QueryColorDatabase couldn't find %s: %v", name, err)
-	}
-	if actual, expected := color.Hex(), "0000ff00"; actual != expected {
-		t.Fatalf("returned color is %s instead of %s", actual, expected)
-	}
+	require.Nil(t, err)
+	require.Equal(t, "0000ff00", color.Hex())
 
+	// QueryColorDatabase: unknown
 	name = "!!unknown!!"
 	color, err = QueryColorDatabase(name)
-	if err == nil {
-		t.Fatalf("QueryColorDatabase found missing color %s", name)
-	}
+	require.NotNil(t, err)
 }
 
 func TestImage(t *testing.T) {
