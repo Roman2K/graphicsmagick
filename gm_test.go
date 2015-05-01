@@ -1,9 +1,15 @@
 package graphicsmagick
 
 import (
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
+
+// TODO use testify where relevant
 
 func TestReadImage(t *testing.T) {
 	// normal
@@ -75,6 +81,28 @@ func TestImageInfo(t *testing.T) {
 	if actual := iminfo.Filename(); actual != filename {
 		t.Fatalf("SetFilename set %v instead of %v", actual, filename)
 	}
+
+	// WriteImage
+	f, err := ioutil.TempFile("", "WriteImage-test")
+	if err != nil {
+		t.Fatalf("TempFile error: %v", err)
+	}
+	defer func() {
+		os.Remove(f.Name())
+	}()
+	f.Close()
+	im, err := ReadImage("fixtures/image.jpg")
+	if err != nil {
+		t.Fatalf("ReadImage() error: %v", err)
+	}
+	defer im.Destroy()
+	iminfo = NewImageInfo()
+	defer iminfo.Destroy()
+	im.SetFilename(f.Name())
+	err = iminfo.WriteImage(im)
+	if err != nil {
+		t.Fatalf("WriteImage() error: %v", err)
+	}
 }
 
 func TestPixelPacket(t *testing.T) {
@@ -92,4 +120,12 @@ func TestPixelPacket(t *testing.T) {
 	if err == nil {
 		t.Fatalf("QueryColorDatabase found missing color %s", name)
 	}
+}
+
+func TestImage(t *testing.T) {
+	// filename
+	im := AllocateImage()
+	require.Equal(t, "", im.Filename())
+	im.SetFilename("abc")
+	require.Equal(t, "abc", im.Filename())
 }

@@ -30,6 +30,12 @@ func ReadImage(path string) (*Image, error) {
 	return iminfo.ReadImage()
 }
 
+func AllocateImage() *Image {
+	iminfo := NewImageInfo()
+	defer iminfo.Destroy()
+	return iminfo.AllocateImage()
+}
+
 type ImageInfo struct {
 	c *C.ImageInfo
 }
@@ -75,6 +81,21 @@ func (inf *ImageInfo) ReadImage() (*Image, error) {
 		return nil, exc.MustError("while reading file")
 	}
 	return &Image{cim}, nil
+}
+
+func (inf *ImageInfo) WriteImage(im *Image) error {
+	exc := newExceptionInfo()
+	defer exc.Destroy()
+	res := C.WriteImage(inf.c, im.c)
+	if res != gmTrue {
+		return exc.MustError("in WriteImage()")
+	}
+	return nil
+}
+
+func (inf *ImageInfo) AllocateImage() *Image {
+	cim := C.AllocateImage(inf.c)
+	return &Image{cim}
 }
 
 type exceptionInfo struct {
@@ -144,6 +165,14 @@ func (im *Image) Rows() uint {
 
 func (im *Image) Columns() uint {
 	return uint(im.c.columns)
+}
+
+func (im *Image) SetFilename(filename string) {
+	gmStrcpy(&im.c.filename, filename)
+}
+
+func (im *Image) Filename() string {
+	return gmGoString(im.c.filename)
 }
 
 type PixelPacket struct {
